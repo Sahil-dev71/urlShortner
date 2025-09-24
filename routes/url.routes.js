@@ -40,6 +40,32 @@ router.get("/allCodes",ensureAuthentication,async(req,res)=>{
         codes,
     })
 })
+router.put("/update",ensureAuthentication,async (req,res)=>{
+    const {
+        currentCode,
+        updateCode,
+        currentTargetCode,
+        updateTargetUrl} =req.body;
+    const [result] = await db.update(urlsTable)
+                              .set({shortUrl:updateCode,
+                                targetUrl:updateTargetUrl?? urlsTable.targetUrl,}
+                              ).where(and(
+                                eq(urlsTable.userId,req.user.id),eq(urlsTable.shortUrl,currentCode)
+                            )).returning({
+                                targetUrl: urlsTable.targetUrl,
+                                shortCode: urlsTable.shortUrl,
+                              
+                            })
+                              
+    return res.status(201).json({
+        targetUrll: result?.targetUrl?? updateTargetUrl,
+        shortCodee: result?.shortCode,
+        // result,
+        message: "hello verification",
+    })
+
+})
+
 router.get("/:shortCode",async(req,res)=>{
     const shortCode=req.params.shortCode;
     const [codeExists]= await db.select({
